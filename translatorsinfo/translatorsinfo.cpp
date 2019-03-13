@@ -35,7 +35,7 @@
 
 //using namespace LXQt;
 
-void fillLangguages(QHash<QString, QString> *languages)
+void fillLanguages(QHash<QString, QString> *languages)
 {
     languages->insert("ach"   ,"Acoli");
     languages->insert("af"    ,"Afrikaans");
@@ -326,7 +326,7 @@ QString languageToString(QString langId)
     static QHash<QString, QString> mLanguagesList;
     if (mLanguagesList.isEmpty())
     {
-        fillLangguages(&mLanguagesList);
+        fillLanguages(&mLanguagesList);
     }
 
     if (mLanguagesList.contains(langId)) {
@@ -335,7 +335,6 @@ QString languageToString(QString langId)
         return langId;
     }
 }
-
 
 
 QString getValue(const QSettings &src, const QString &key)
@@ -348,11 +347,8 @@ QString getValue(const QSettings &src, const QString &key)
 }
 
 
-
 TranslatorsInfo::TranslatorsInfo()
 {
-    //fillLangguages(&mLanguagesList);
-
     QSettings src(":/translatorsInfo", QSettings::IniFormat);
     src.setIniCodec("UTF-8");
 
@@ -378,16 +374,24 @@ TranslatorsInfo::TranslatorsInfo()
     }
 }
 
+
 QString TranslatorsInfo::asHtml() const
 {
-    QString ret;
-    ret = "<dl>";
+    std::map<QString, QString> languageStringToLangId;
+
     for(const auto& entry : mLangTranslators)
     {
-        const auto& lang = entry.first;
-        const auto& translators = entry.second;
+        languageStringToLangId[languageToString(entry.first)] = entry.first;
+    }
 
-        ret += "<dt><strong>" + languageToString(lang) + "</strong></dt>";
+    QString ret;
+    ret = "<dl>";
+
+    for (const auto& languageString : languageStringToLangId)
+    {
+        const auto& translators = mLangTranslators.at (languageString.second);
+
+        ret += "<dt><strong>" + languageString.first + "</strong></dt>";
         for(const auto & translator : translators) {
             ret += "<dd>" + translator.asHtml() + "</dd>";
         }
@@ -402,6 +406,7 @@ void TranslatorsInfo::process(const QString &lang, const QString &englishName, c
 {
     mLangTranslators[lang].emplace(englishName, nativeName, contact);
 }
+
 
 QString TranslatorPerson::asHtml() const
 {
@@ -423,4 +428,3 @@ QString TranslatorPerson::asHtml() const
 
     return ret;
 }
-
